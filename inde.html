@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ساعتي</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f0f1a;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    svg { margin-bottom: 1.5rem; }
+    #digitalTime {
+      font-size: 2.5rem;
+      font-family: monospace;
+      letter-spacing: 0.1em;
+    }
+    #dateLabel {
+      margin-top: 0.5rem;
+      color: #aaa;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<svg id="analogClock" width="220" height="220" viewBox="0 0 220 220">
+  <circle cx="110" cy="110" r="104" fill="#1a1a2e" stroke="#444" stroke-width="2"/>
+  <g id="ticks"></g>
+  <line id="hourHand" x1="110" y1="110" x2="110" y2="55" stroke="white" stroke-width="6" stroke-linecap="round"/>
+  <line id="minHand"  x1="110" y1="110" x2="110" y2="38" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <line id="secHand"  x1="110" y1="110" x2="110" y2="30" stroke="#e74c3c" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="110" cy="110" r="5" fill="#e74c3c"/>
+</svg>
+
+<div id="digitalTime">00:00:00</div>
+<div id="dateLabel"></div>
+
+<script>
+  const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو',
+                  'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+  const ticks = document.getElementById('ticks');
+  for (let i = 0; i < 60; i++) {
+    const angle = i * 6 * Math.PI / 180;
+    const major = i % 5 === 0;
+    const r1 = major ? 88 : 95, r2 = 102;
+    const x1 = 110 + r1*Math.sin(angle), y1 = 110 - r1*Math.cos(angle);
+    const x2 = 110 + r2*Math.sin(angle), y2 = 110 - r2*Math.cos(angle);
+    const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',x1); l.setAttribute('y1',y1);
+    l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+    l.setAttribute('stroke', major ? 'white' : '#555');
+    l.setAttribute('stroke-width', major ? '2.5' : '1');
+    l.setAttribute('stroke-linecap','round');
+    ticks.appendChild(l);
+    if (major) {
+      const n = i === 0 ? 12 : i/5;
+      const tx = 110 + 74*Math.sin(angle), ty = 110 - 74*Math.cos(angle) + 5;
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x',tx); t.setAttribute('y',ty);
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('font-size','13'); t.setAttribute('fill','#aaa');
+      t.textContent = n;
+      ticks.appendChild(t);
+    }
+  }
+
+  function rotate(id, deg) {
+    document.getElementById(id).setAttribute('transform',`rotate(${deg},110,110)`);
+  }
+
+  function tick() {
+    const now = new Date();
+    const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    rotate('hourHand', (h%12)*30 + m*0.5);
+    rotate('minHand',  m*6 + s*0.1);
+    rotate('secHand',  s*6);
+    document.getElementById('digitalTime').textContent =
+      String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    document.getElementById('dateLabel').textContent =
+      days[now.getDay()]+' '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+  }
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
